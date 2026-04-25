@@ -28,6 +28,15 @@
 </head>
 <body class="p-4 md:p-10">
 
+    <div style="position:fixed; top:10px; left:10px; z-index:999;">
+    <button onclick="toggleMenu()" style="font-size:24px;">☰</button>
+</div>
+
+<div id="menu" style="display:none; position:fixed; top:50px; left:10px; background:white; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); z-index:999;">
+    <p><a href="index.html">🍎 Fawakih (Buah)</a></p>
+    <p><a href="warna.html">🎨 Al-Alwan (Warna)</a></p>
+    <p><a href="quiz.html">🎮 Kuiz</a></p>
+</div>
     <div class="max-w-6xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-4xl font-bold text-sky-900 mb-2">🍎 Flashcard Al-Fawākihu</h1>
@@ -121,5 +130,11 @@
         document.getElementById('searchInput').addEventListener('input', (e) => renderCards(e.target.value));
         renderCards();
     </script>
+    <script>
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+</script>
 </body>
 </html>
