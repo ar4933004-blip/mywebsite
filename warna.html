@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard & Kuiz Arab: Al-Alwan (Warna)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background: #faf5ff; }
+        
+        /* Font Arab & Jawi */
+        .arabic-text { font-family: 'Amiri', serif; direction: rtl; line-height: 1.6; }
+        .arabic-main { font-size: 2.5rem; font-weight: bold; color: #4c1d95; }
+        
+        /* Kesan Pusing (Flip) */
+        .flip-card { background-color: transparent; perspective: 1000px; height: 260px; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .flip-card-front { background-color: white; border: 2px solid #e9d5ff; }
+        .flip-card-back { background-color: #8b5cf6; color: white; transform: rotateY(180deg); }
+        
+        /* Animasi butang */
+        .btn-hover:hover { transform: scale(1.05); transition: all 0.2s; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+  
+<div style="position:fixed; top:10px; left:10px; z-index:999;">
+    <button onclick="toggleMenu()" style="font-size:24px;">☰</button>
+</div>
+
+<div id="menu" style="display:none; position:fixed; top:50px; left:10px; background:white; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); z-index:999;">
+    <p><a href="index.html">🍎 Fawakih (Buah)</a></p>
+    <p><a href="warna.html">🎨 Al-Alwan (Warna)</a></p>
+    <p><a href="quiz.html">🎮 Kuiz</a></p>
+</div>
+    <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden min-h-[80vh] border-4 border-purple-100">
+        
+        <div class="bg-purple-600 text-white p-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold arabic-text">اللَّوْنُ (Warna)</h1>
+            <div class="space-x-4">
+                <button onclick="showFlashcards()" class="px-4 py-2 bg-purple-500 rounded-lg hover:bg-purple-400 font-bold transition">Nota</button>
+                <button onclick="showQuiz()" class="px-4 py-2 bg-yellow-400 text-purple-900 rounded-lg hover:bg-yellow-300 font-bold transition">Mula Kuiz 🎮</button>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <div id="flashcardSection">
+                <div class="text-center mb-8">
+                    <p class="text-gray-500 mb-4">Klik pada kad untuk menterbalikkan nota. Gunakan fungsi carian untuk mencari warna khusus.</p>
+                    <input type="text" id="searchInput" placeholder="Cari warna..." 
+                    class="w-full max-w-md px-5 py-3 rounded-full border-2 border-purple-200 focus:border-purple-500 outline-none shadow-sm mx-auto block">
+                </div>
+                
+                <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    </div>
+            </div>
+
+            <div id="quizSection" style="display: none;" class="text-center max-w-2xl mx-auto py-10">
+                <h2 class="text-3xl font-bold text-purple-800 mb-2">Kuiz Minda: Al-Alwan</h2>
+                <p class="text-gray-500 mb-8" id="kuizStatus">Pilih jawapan yang betul!</p>
+
+                <div id="soalanContainer" class="bg-purple-50 rounded-2xl p-8 mb-8 border-2 border-purple-100">
+                    <div id="warnaSoalan" class="w-24 h-24 rounded-full mx-auto mb-6 shadow-md border-4 border-white"></div>
+                    <h3 id="teksSoalan" class="text-xl font-bold text-gray-700">Apakah warna ini dalam Bahasa Arab?</h3>
+                </div>
+
+                <div id="pilihanContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    </div>
+
+                <div id="keputusanContainer" style="display: none;" class="mt-8">
+                    <h3 class="text-4xl font-bold text-green-500 mb-4" id="markahAkhir"></h3>
+                    <button onclick="mulaKuiz()" class="px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 btn-hover">Mula Semula</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Data Warna dari PDF
+        const colors = [
+            { ar: "أَحْمَرٍ", rm: "Ahmar", my: "ميره", en: "Red", hex: "#ef4444" },
+            { ar: "أَزْرَق", rm: "Azraq", my: "بيرو", en: "Blue", hex: "#3b82f6" },
+            { ar: "أَصْفَرٍ", rm: "Asfar", my: "کونيڠ", en: "Yellow", hex: "#eab308" },
+            { ar: "أَخْضَرٍ", rm: "Akhdar", my: "هيجاو", en: "Green", hex: "#22c55e" },
+            { ar: "أَبْيَض", rm: "Abyadh", my: "ڤوتيه", en: "White", hex: "#f8fafc", border: "border-gray-300" },
+            { ar: "أَسْوَد", rm: "Aswad", my: "هيتم", en: "Black", hex: "#0f172a" },
+            { ar: "أَسْمَرٍ", rm: "Asmar", my: "ڤيرڠ", en: "Brown", hex: "#8B4513" },
+            { ar: "بَنَفْسَجِيّ", rm: "Banafsaji", my: "اوڠو", en: "Purple", hex: "#a855f7" },
+            { ar: "وَرْدِيّ", rm: "Wardī", my: "ميره جمبو", en: "Pink", hex: "#ec4899" },
+            { ar: "رَمَادِيّ", rm: "Ramādī", my: "کلابو", en: "Grey", hex: "#64748b" },
+            { ar: "بُرْتُقَالِيّ", rm: "Burtugālī", my: "جيڠݢ", en: "Orange", hex: "#f97316" },
+            { ar: "ذَهَبِيّ", rm: "Zahabī", my: "امس", en: "Gold", hex: "#fbbf24" }
+        ];
+
+        /* --- FUNGSI FLASHCARD --- */
+        function renderCards(filter = "") {
+            const grid = document.getElementById('cardGrid');
+            grid.innerHTML = "";
+            
+            colors.filter(c => c.my.includes(filter) || c.ar.includes(filter) || c.rm.toLowerCase().includes(filter.toLowerCase()))
+            .forEach(color => {
+                const borderClass = color.border ? color.border : 'border-transparent';
+                const card = document.createElement('div');
+                card.className = "flip-card";
+                card.innerHTML = `
+                    <div class="flip-card-inner" onclick="this.parentElement.classList.toggle('flipped')">
+                        <div class="flip-card-front">
+                            <div class="w-16 h-16 rounded-full mb-4 shadow-inner border-2 ${borderClass}" style="background-color: ${color.hex}"></div>
+                            <h2 class="arabic-text arabic-main mb-1">${color.ar}</h2>
+                            <p class="text-gray-400 italic text-sm">${color.rm}</p>
+                            <button onclick="event.stopPropagation(); speak('${color.ar}')" class="mt-3 p-1.5 px-4 bg-purple-100 text-purple-800 text-sm rounded-full hover:bg-purple-200">
+                                🔊 Sebut
+                            </button>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3 class="text-3xl font-bold arabic-text">${color.my}</h3>
+                            <p class="opacity-80 mt-2">${color.en}</p>
+                            <p class="mt-6 text-xs font-light opacity-60">Klik untuk pusing</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+
+        /* --- FUNGSI KUIZ --- */
+        let soalanSemasa = 0;
+        let markah = 0;
+        let senaraiSoalan = [];
+
+        function mulaKuiz() {
+            // Sediakan soalan (rawak)
+            senaraiSoalan = [...colors].sort(() => 0.5 - Math.random()).slice(0, 5); // Ambil 5 soalan
+            soalanSemasa = 0;
+            markah = 0;
+            
+            document.getElementById('keputusanContainer').style.display = 'none';
+            document.getElementById('soalanContainer').style.display = 'block';
+            document.getElementById('pilihanContainer').style.display = 'grid';
+            
+            paparSoalan();
+        }
+
+        function paparSoalan() {
+            const soalan = senaraiSoalan[soalanSemasa];
+            document.getElementById('kuizStatus').innerText = `Soalan ${soalanSemasa + 1} daripada ${senaraiSoalan.length}`;
+            
+            // Set warna bulatan soalan
+            document.getElementById('warnaSoalan').style.backgroundColor = soalan.hex;
+            
+            // Jana pilihan jawapan (1 betul, 3 salah)
+            let pilihan = [soalan];
+            let bakiWarna = colors.filter(c => c.ar !== soalan.ar);
+            bakiWarna.sort(() => 0.5 - Math.random());
+            pilihan.push(bakiWarna[0], bakiWarna[1], bakiWarna[2]);
+            pilihan.sort(() => 0.5 - Math.random()); // Rawakkan susunan jawapan
+
+            const container = document.getElementById('pilihanContainer');
+            container.innerHTML = "";
+            
+            pilihan.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 bg-white border-2 border-purple-200 rounded-xl text-2xl arabic-text font-bold text-purple-800 hover:bg-purple-50 hover:border-purple-400 btn-hover transition";
+                btn.innerText = p.ar;
+                btn.onclick = () => semakJawapan(p.ar, soalan.ar);
+                container.appendChild(btn);
+            });
+        }
+
+        function semakJawapan(jawapanPengguna, jawapanBetul) {
+            if (jawapanPengguna === jawapanBetul) {
+                markah++;
+            }
+            
+            soalanSemasa++;
+            
+            if (soalanSemasa < senaraiSoalan.length) {
+                paparSoalan();
+            } else {
+                tamatKuiz();
+            }
+        }
+
+        function tamatKuiz() {
+            document.getElementById('soalanContainer').style.display = 'none';
+            document.getElementById('pilihanContainer').style.display = 'none';
+            document.getElementById('keputusanContainer').style.display = 'block';
+            document.getElementById('kuizStatus').innerText = "Kuiz Tamat!";
+            document.getElementById('markahAkhir').innerText = `Markah: ${markah} / ${senaraiSoalan.length}`;
+        }
+
+        /* --- NAVIGASI TAB --- */
+        function showFlashcards() {
+            document.getElementById('flashcardSection').style.display = 'block';
+            document.getElementById('quizSection').style.display = 'none';
+        }
+
+        function showQuiz() {
+            document.getElementById('flashcardSection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'block';
+            mulaKuiz();
+        }
+
+        // Initialize
+        document.getElementById('searchInput').addEventListener('input', (e) => renderCards(e.target.value));
+        renderCards();
+    </script>
+<script>
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+</script>  
+</body>
+</html>
