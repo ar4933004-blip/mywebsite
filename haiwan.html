@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permainan Memori: Haiwan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background: #ecfdf5; }
+        .arabic-text { font-family: 'Amiri', serif; }
+        
+        .memory-card {
+            width: 100%;
+            height: 120px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+        }
+        .memory-card.flip { transform: rotateY(180deg); }
+        .front-face, .back-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .front-face { background: #10b981; color: white; font-size: 2.5rem; }
+        .back-face { background: white; transform: rotateY(180deg); border: 2px solid #34d399; flex-direction: column; text-align: center; padding: 5px;}
+    </style>
+</head>
+<body class="p-6">
+
+    <div style="position:fixed; top:10px; left:10px; z-index:999;">
+    <button onclick="toggleMenu()" style="font-size:24px;">☰</button>
+</div>
+
+<div id="menu" style="display:none; position:fixed; top:50px; left:10px; background:white; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); z-index:999;">
+    <p><a href="index.html">🍎 Fawakih</a></p>
+    <p><a href="warna.html">🎨 Warna</a></p>
+    <p><a href="quiz.html">🎮 Kuiz</a></p>
+    <p><a href="haiwan.html">🐾 Haiwan</a></p>
+</div>
+    <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-3xl font-bold text-emerald-800 mb-2">Permainan Memori: Haiwan 🐾</h1>
+        <p class="text-emerald-600 mb-6">Cari pasangan nama Arab dan sebutan Jawinya!</p>
+        
+        <div class="flex justify-center gap-4 mb-6">
+            <p class="font-bold text-lg text-slate-700">Markah: <span id="score">0</span></p>
+            <button onclick="susunKad()" class="bg-emerald-500 text-white px-4 py-1 rounded-lg hover:bg-emerald-600 font-bold transition">Mula Semula</button>
+        </div>
+
+        <div id="gameBoard" class="grid grid-cols-4 gap-4">
+            </div>
+    </div>
+
+    <script>
+        const senaraiHaiwanLengkap = [
+            { ar: "قِطَّ", my: "Kucing", jawi: "کوچيڠ" }, 
+            { ar: "بَقَرٌ", my: "Lembu", jawi: "لمبو" }, 
+            { ar: "غَنَمٌ", my: "Kambing", jawi: "کمبيڠ" }, 
+            { ar: "حِصَانٌ", my: "Kuda", jawi: "کودا" }, 
+            { ar: "جَامُوسٌ", my: "Kerbau", jawi: "کرباو" }, 
+            { ar: "حِمَارٌ", my: "Keldai", jawi: "کلداي" }, 
+            { ar: "أَرْنَبٌ", my: "Arnab", jawi: "ارنب" }, 
+            { ar: "كَلْبٌ", my: "Anjing", jawi: "انجيڠ" }, 
+            { ar: "جَمَلٌ", my: "Unta", jawi: "اونتا" }, 
+            { ar: "دَجَاجَةٌ", my: "Ayam", jawi: "ايم" }, 
+            { ar: "دِيْكٌ", my: "Ayam jantan", jawi: "ايم جنتن" }, 
+            { ar: "سِنْجَابٌ", my: "Tupai", jawi: "توڤاي" }, 
+            { ar: "طَيْرٌ", my: "Burung", jawi: "بوروڠ" }, 
+            { ar: "خَرُوفٌ", my: "Kambing biri-biri", jawi: "کمبيڠ بيري٢" }, 
+            { ar: "بَطَّةٌ", my: "Itik", jawi: "ايتيق" }, 
+            { ar: "إِوَزْةٌ", my: "Angsa", jawi: "اڠسا" }, 
+            { ar: "سُلَحْفَاةٌ", my: "Kura-kura", jawi: "کورا٢" }, 
+            { ar: "دِيْكٌ رُومِيٌّ", my: "Ayam Belanda", jawi: "ايم بلندا" }, 
+            { ar: "أَسَدٌ", my: "Singa", jawi: "سيڠا" }, 
+            { ar: "نَمِرٌ", my: "Harimau", jawi: "هريماو" }, 
+            { ar: "تِمْسَاحٌ", my: "Buaya", jawi: "بوايا" }, 
+            { ar: "تُعْبَانٌ", my: "Ular", jawi: "اولر" }, 
+            { ar: "فِيْلٌ", my: "Gajah", jawi: "ݢاجه" }, 
+            { ar: "قِرْدٌ", my: "Monyet", jawi: "موڽيت" }, 
+            { ar: "زَرَافَةٌ", my: "Zirafah", jawi: "زرافه" }, 
+            { ar: "غُوْرِيْلًا", my: "Gorila", jawi: "ݢوريلا" }, 
+            { ar: "ذِئْبٌ", my: "Serigala", jawi: "سريݢالا" }, 
+            { ar: "غَزَالٌ", my: "Rusa", jawi: "روسا" }, 
+            { ar: "تَعْلَبٌ", my: "Musang", jawi: "موسڠ" }, 
+            { ar: "قنفذ", my: "Landak", jawi: "لندق" }, 
+            { ar: "فَهْدٌ", my: "Harimau bintang", jawi: "هريماو بينتڠ" }, 
+            { ar: "ضَبْعٌ", my: "Dubuk", jawi: "دوبوق" }, 
+            { ar: "دُبٌ", my: "Beruang", jawi: "برواڠ" }, 
+            { ar: "كَرْكَذَّنٌ", my: "Badak Sumbu", jawi: "بادق سومبو" }, 
+            { ar: "فَرَسُ النَّهْرِ", my: "Badak Air", jawi: "بادق اير" }, 
+            { ar: "أَبُو الْحُصَيْنِ", my: "Kancil", jawi: "کنچيل" }, 
+            { ar: "نَاسُ الْغَابَةِ", my: "Orang Utan", jawi: "اورڠ اوتن" }, 
+            { ar: "حِمَارٌ وَحْشِيٌّ", my: "Kuda Belang", jawi: "کودا بلڠ" }
+        ];
+
+        let kadDipilih = [];
+        let padananDitemui = 0;
+        let markah = 0;
+        let jumlahPasanganSatuPusingan = 8; // Pilih 8 haiwan sahaja setiap kali main
+
+        function susunKad() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            kadDipilih = [];
+            padananDitemui = 0;
+            markah = 0;
+            document.getElementById('score').innerText = markah;
+
+            // Pilih 8 haiwan secara rawak daripada senarai 38
+            let senaraiRawak = [...senaraiHaiwanLengkap].sort(() => 0.5 - Math.random()).slice(0, jumlahPasanganSatuPusingan);
+
+            // Gandakan data untuk buat pasangan
+            let susunanPermainan = [];
+            senaraiRawak.forEach(haiwan => {
+                // Kad Bahasa Arab
+                susunanPermainan.push({ teks: haiwan.ar, id: haiwan.my, kelas: 'arabic-text text-4xl font-bold text-emerald-700' });
+                // Kad Bahasa Melayu (Tulisan Jawi)
+                susunanPermainan.push({ teks: haiwan.jawi, id: haiwan.my, kelas: 'arabic-text text-2xl font-bold text-slate-700' });
+            });
+
+            // Rawakkan susunan kad di atas meja
+            susunanPermainan.sort(() => 0.5 - Math.random());
+
+            susunanPermainan.forEach(item => {
+                const kad = document.createElement('div');
+                kad.classList.add('memory-card');
+                kad.dataset.id = item.id;
+                
+                kad.innerHTML = `
+                    <div class="front-face">❓</div>
+                    <div class="back-face ${item.kelas}">${item.teks}</div>
+                `;
+                
+                kad.addEventListener('click', flipCard);
+                gameBoard.appendChild(kad);
+            });
+        }
+
+        function flipCard() {
+            if (kadDipilih.length < 2 && !this.classList.contains('flip')) {
+                this.classList.add('flip');
+                kadDipilih.push(this);
+
+                if (kadDipilih.length === 2) {
+                    setTimeout(semakPadanan, 800);
+                }
+            }
+        }
+
+        function semakPadanan() {
+            const [kad1, kad2] = kadDipilih;
+            const padan = kad1.dataset.id === kad2.dataset.id;
+
+            if (padan) {
+                markah += 10;
+                padananDitemui++;
+                kadDipilih = [];
+                if (padananDitemui === jumlahPasanganSatuPusingan) {
+                    alert('Tahniah! Anda telah berjaya memadankan kesemua kad. Klik Mula Semula untuk cuba haiwan yang lain.');
+                }
+            } else {
+                kad1.classList.remove('flip');
+                kad2.classList.remove('flip');
+                kadDipilih = [];
+            }
+            document.getElementById('score').innerText = markah;
+        }
+
+        susunKad();
+    </script>
+    <script>
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+</body>
+</html>
