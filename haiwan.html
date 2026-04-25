@@ -3,40 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permainan Memori: Haiwan</title>
+    <title>Kamus & Permainan Haiwan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Quicksand', sans-serif; background: #ecfdf5; }
         .arabic-text { font-family: 'Amiri', serif; }
         
-        .memory-card {
-            width: 100%;
-            height: 120px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.5s;
-            cursor: pointer;
-        }
-        .memory-card.flip { transform: rotateY(180deg); }
-        .front-face, .back-face {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .front-face { background: #10b981; color: white; font-size: 2.5rem; }
-        .back-face { background: white; transform: rotateY(180deg); border: 2px solid #34d399; flex-direction: column; text-align: center; padding: 5px;}
+        /* Gaya untuk Nota Flashcard */
+        .nota-card { perspective: 1000px; height: 220px; }
+        .nota-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; }
+        .nota-card.flipped .nota-inner { transform: rotateY(180deg); }
+        .nota-front, .nota-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .nota-front { background: white; border: 2px solid #a7f3d0; }
+        .nota-back { background: #059669; color: white; transform: rotateY(180deg); }
+
+        /* Gaya untuk Permainan Memori */
+        .memory-card { perspective: 1000px; height: 120px; cursor: pointer; }
+        .memory-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.5s; transform-style: preserve-3d; }
+        .memory-card.flip .memory-inner { transform: rotateY(180deg); }
+        .memory-front, .memory-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .memory-front { background: #10b981; color: white; font-size: 2.5rem; }
+        .memory-back { background: white; transform: rotateY(180deg); border: 2px solid #34d399; }
     </style>
 </head>
-<body class="p-6">
-
-    <div style="position:fixed; top:10px; left:10px; z-index:999;">
+<body class="p-4 md:p-8">
+    
+<div style="position:fixed; top:10px; left:10px; z-index:999;">
     <button onclick="toggleMenu()" style="font-size:24px;">☰</button>
 </div>
 
@@ -46,135 +39,165 @@
     <p><a href="quiz.html">🎮 Kuiz</a></p>
     <p><a href="haiwan.html">🐾 Haiwan</a></p>
 </div>
-    <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-3xl font-bold text-emerald-800 mb-2">Permainan Memori: Haiwan 🐾</h1>
-        <p class="text-emerald-600 mb-6">Cari pasangan nama Arab dan sebutan Jawinya!</p>
+    <div class="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden min-h-[80vh] border-4 border-emerald-100 p-6">
         
-        <div class="flex justify-center gap-4 mb-6">
-            <p class="font-bold text-lg text-slate-700">Markah: <span id="score">0</span></p>
-            <button onclick="susunKad()" class="bg-emerald-500 text-white px-4 py-1 rounded-lg hover:bg-emerald-600 font-bold transition">Mula Semula</button>
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-emerald-800 mb-6">Dunia Haiwan 🐾</h1>
+            <div class="flex justify-center gap-4">
+                <button id="btnNota" onclick="bukaBahagian('nota')" class="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold transition-all hover:bg-emerald-700 shadow-md">
+                    📖 Buku Nota
+                </button>
+                <button id="btnMain" onclick="bukaBahagian('main')" class="px-6 py-3 bg-white border-2 border-emerald-500 text-emerald-600 rounded-xl font-bold transition-all hover:bg-emerald-50 shadow-md">
+                    🎮 Main Permainan
+                </button>
+            </div>
+        </header>
+
+        <div id="bahagianNota">
+            <div class="text-center mb-6">
+                <input type="text" id="carian" placeholder="Cari haiwan..." class="w-full max-w-md px-5 py-3 rounded-full border-2 border-emerald-200 outline-none focus:border-emerald-500">
+            </div>
+            <div id="gridNota" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                </div>
         </div>
 
-        <div id="gameBoard" class="grid grid-cols-4 gap-4">
+        <div id="bahagianMain" style="display: none;" class="text-center">
+            <p class="text-emerald-600 mb-4">Cari pasangan nama Arab dan sebutan Jawinya!</p>
+            <div class="flex justify-center gap-4 mb-6 items-center">
+                <p class="font-bold text-xl text-slate-700 bg-emerald-100 px-4 py-2 rounded-lg">Markah: <span id="score">0</span></p>
+                <button onclick="mulaPermainan()" class="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 font-bold">Main Semula</button>
             </div>
+            <div id="gridMemori" class="grid grid-cols-4 gap-4 max-w-3xl mx-auto">
+                </div>
+        </div>
+
     </div>
 
     <script>
         const senaraiHaiwanLengkap = [
-            { ar: "قِطَّ", my: "Kucing", jawi: "کوچيڠ" }, 
-            { ar: "بَقَرٌ", my: "Lembu", jawi: "لمبو" }, 
-            { ar: "غَنَمٌ", my: "Kambing", jawi: "کمبيڠ" }, 
-            { ar: "حِصَانٌ", my: "Kuda", jawi: "کودا" }, 
-            { ar: "جَامُوسٌ", my: "Kerbau", jawi: "کرباو" }, 
-            { ar: "حِمَارٌ", my: "Keldai", jawi: "کلداي" }, 
-            { ar: "أَرْنَبٌ", my: "Arnab", jawi: "ارنب" }, 
-            { ar: "كَلْبٌ", my: "Anjing", jawi: "انجيڠ" }, 
-            { ar: "جَمَلٌ", my: "Unta", jawi: "اونتا" }, 
-            { ar: "دَجَاجَةٌ", my: "Ayam", jawi: "ايم" }, 
-            { ar: "دِيْكٌ", my: "Ayam jantan", jawi: "ايم جنتن" }, 
-            { ar: "سِنْجَابٌ", my: "Tupai", jawi: "توڤاي" }, 
-            { ar: "طَيْرٌ", my: "Burung", jawi: "بوروڠ" }, 
-            { ar: "خَرُوفٌ", my: "Kambing biri-biri", jawi: "کمبيڠ بيري٢" }, 
-            { ar: "بَطَّةٌ", my: "Itik", jawi: "ايتيق" }, 
-            { ar: "إِوَزْةٌ", my: "Angsa", jawi: "اڠسا" }, 
-            { ar: "سُلَحْفَاةٌ", my: "Kura-kura", jawi: "کورا٢" }, 
-            { ar: "دِيْكٌ رُومِيٌّ", my: "Ayam Belanda", jawi: "ايم بلندا" }, 
-            { ar: "أَسَدٌ", my: "Singa", jawi: "سيڠا" }, 
-            { ar: "نَمِرٌ", my: "Harimau", jawi: "هريماو" }, 
-            { ar: "تِمْسَاحٌ", my: "Buaya", jawi: "بوايا" }, 
-            { ar: "تُعْبَانٌ", my: "Ular", jawi: "اولر" }, 
-            { ar: "فِيْلٌ", my: "Gajah", jawi: "ݢاجه" }, 
-            { ar: "قِرْدٌ", my: "Monyet", jawi: "موڽيت" }, 
-            { ar: "زَرَافَةٌ", my: "Zirafah", jawi: "زرافه" }, 
-            { ar: "غُوْرِيْلًا", my: "Gorila", jawi: "ݢوريلا" }, 
-            { ar: "ذِئْبٌ", my: "Serigala", jawi: "سريݢالا" }, 
-            { ar: "غَزَالٌ", my: "Rusa", jawi: "روسا" }, 
-            { ar: "تَعْلَبٌ", my: "Musang", jawi: "موسڠ" }, 
-            { ar: "قنفذ", my: "Landak", jawi: "لندق" }, 
-            { ar: "فَهْدٌ", my: "Harimau bintang", jawi: "هريماو بينتڠ" }, 
-            { ar: "ضَبْعٌ", my: "Dubuk", jawi: "دوبوق" }, 
-            { ar: "دُبٌ", my: "Beruang", jawi: "برواڠ" }, 
-            { ar: "كَرْكَذَّنٌ", my: "Badak Sumbu", jawi: "بادق سومبو" }, 
-            { ar: "فَرَسُ النَّهْرِ", my: "Badak Air", jawi: "بادق اير" }, 
-            { ar: "أَبُو الْحُصَيْنِ", my: "Kancil", jawi: "کنچيل" }, 
-            { ar: "نَاسُ الْغَابَةِ", my: "Orang Utan", jawi: "اورڠ اوتن" }, 
-            { ar: "حِمَارٌ وَحْشِيٌّ", my: "Kuda Belang", jawi: "کودا بلڠ" }
+            { ar: "قِطَّ", rm: "Qittun", my: "Kucing", jawi: "کوچيڠ" }, { ar: "بَقَرٌ", rm: "Baqarun", my: "Lembu", jawi: "لمبو" },
+            { ar: "غَنَمٌ", rm: "Ghanamun", my: "Kambing", jawi: "کمبيڠ" }, { ar: "حِصَانٌ", rm: "Hisānun", my: "Kuda", jawi: "کودا" },
+            { ar: "جَامُوسٌ", rm: "Jāmūsun", my: "Kerbau", jawi: "کرباو" }, { ar: "حِمَارٌ", rm: "Himārun", my: "Keldai", jawi: "کلداي" },
+            { ar: "أَرْنَبٌ", rm: "Arnabun", my: "Arnab", jawi: "ارنب" }, { ar: "كَلْبٌ", rm: "Kalbun", my: "Anjing", jawi: "انجيڠ" },
+            { ar: "جَمَلٌ", rm: "Jamalun", my: "Unta", jawi: "اونتا" }, { ar: "دَجَاجَةٌ", rm: "Dajājatun", my: "Ayam", jawi: "ايم" },
+            { ar: "دِيْكٌ", rm: "Dīkun", my: "Ayam jantan", jawi: "ايم جنتن" }, { ar: "سِنْجَابٌ", rm: "Sinjābun", my: "Tupai", jawi: "توڤاي" },
+            { ar: "طَيْرٌ", rm: "Tayrun", my: "Burung", jawi: "بوروڠ" }, { ar: "خَرُوفٌ", rm: "Kharūfun", my: "Biri-biri", jawi: "بيري٢" },
+            { ar: "بَطَّةٌ", rm: "Battatun", my: "Itik", jawi: "ايتيق" }, { ar: "إِوَزْةٌ", rm: "Iwazzatun", my: "Angsa", jawi: "اڠسا" },
+            { ar: "سُلَحْفَاةٌ", rm: "Sulahfātun", my: "Kura-kura", jawi: "کورا٢" }, { ar: "أَسَدٌ", rm: "Asadun", my: "Singa", jawi: "سيڠا" },
+            { ar: "نَمِرٌ", rm: "Namirun", my: "Harimau", jawi: "هريماو" }, { ar: "تِمْسَاحٌ", rm: "Timsāhun", my: "Buaya", jawi: "بوايا" },
+            { ar: "تُعْبَانٌ", rm: "Su'bānun", my: "Ular", jawi: "اولر" }, { ar: "فِيْلٌ", rm: "Filun", my: "Gajah", jawi: "ݢاجه" },
+            { ar: "قِرْدٌ", rm: "Qirdun", my: "Monyet", jawi: "موڽيت" }, { ar: "زَرَافَةٌ", rm: "Zarafatun", my: "Zirafah", jawi: "زرافه" },
+            { ar: "غُوْرِيْلًا", rm: "Ghūrīlā", my: "Gorila", jawi: "ݢوريلا" }, { ar: "ذِئْبٌ", rm: "Zikbun", my: "Serigala", jawi: "سريݢالا" },
+            { ar: "غَزَالٌ", rm: "Ghazalun", my: "Rusa", jawi: "روسا" }, { ar: "تَعْلَبٌ", rm: "Sa'labun", my: "Musang", jawi: "موسڠ" },
+            { ar: "قنفذ", rm: "Qanfuzun", my: "Landak", jawi: "لندق" }, { ar: "فَهْدٌ", rm: "Fahdun", my: "Harimau bintang", jawi: "هريماو بينتڠ" },
+            { ar: "ضَبْعٌ", rm: "Dhab-'un", my: "Dubuk", jawi: "دوبوق" }, { ar: "دُبٌ", rm: "Dubbun", my: "Beruang", jawi: "برواڠ" },
+            { ar: "كَرْكَذَّنٌ", rm: "Karkaddanun", my: "Badak Sumbu", jawi: "بادق سومبو" }, { ar: "فَرَسُ النَّهْرِ", rm: "Farasun nahri", my: "Badak Air", jawi: "بادق اير" },
+            { ar: "أَبُو الْحُصَيْنِ", rm: "Abul husayni", my: "Kancil", jawi: "کنچيل" }, { ar: "نَاسُ الْغَابَةِ", rm: "Nāsul ghābati", my: "Orang Utan", jawi: "اورڠ اوتن" },
+            { ar: "حِمَارٌ وَحْشِيٌّ", rm: "Himārun wahshiyyun", my: "Kuda Belang", jawi: "کودا بلڠ" }, { ar: "دِيْكٌ رُومِيٌّ", rm: "Dīkun rūmiyyun", my: "Ayam Belanda", jawi: "ايم بلندا" }
         ];
 
-        let kadDipilih = [];
-        let padananDitemui = 0;
-        let markah = 0;
-        let jumlahPasanganSatuPusingan = 8; // Pilih 8 haiwan sahaja setiap kali main
+        /* --- FUNGSI TUKAR BAHAGIAN --- */
+        function bukaBahagian(bahagian) {
+            document.getElementById('bahagianNota').style.display = bahagian === 'nota' ? 'block' : 'none';
+            document.getElementById('bahagianMain').style.display = bahagian === 'main' ? 'block' : 'none';
+            
+            const btnNota = document.getElementById('btnNota');
+            const btnMain = document.getElementById('btnMain');
 
-        function susunKad() {
-            const gameBoard = document.getElementById('gameBoard');
-            gameBoard.innerHTML = '';
-            kadDipilih = [];
-            padananDitemui = 0;
-            markah = 0;
+            if(bahagian === 'nota') {
+                btnNota.className = "px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-md";
+                btnMain.className = "px-6 py-3 bg-white border-2 border-emerald-500 text-emerald-600 rounded-xl font-bold transition-all shadow-md";
+            } else {
+                btnMain.className = "px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-md";
+                btnNota.className = "px-6 py-3 bg-white border-2 border-emerald-500 text-emerald-600 rounded-xl font-bold transition-all shadow-md";
+                mulaPermainan();
+            }
+        }
+
+        /* --- FUNGSI BUKU NOTA --- */
+        function paparNota(filter = "") {
+            const grid = document.getElementById('gridNota');
+            grid.innerHTML = "";
+            senaraiHaiwanLengkap.filter(h => h.my.toLowerCase().includes(filter.toLowerCase()) || h.ar.includes(filter))
+            .forEach(haiwan => {
+                const kad = document.createElement('div');
+                kad.className = "nota-card";
+                kad.innerHTML = `
+                    <div class="nota-inner" onclick="this.parentElement.classList.toggle('flipped')">
+                        <div class="nota-front p-4">
+                            <h2 class="arabic-text text-4xl font-bold text-emerald-700 mb-2">${haiwan.ar}</h2>
+                            <p class="text-slate-400 italic text-sm mb-3">${haiwan.rm}</p>
+                            <button onclick="event.stopPropagation(); speak('${haiwan.ar}')" class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold hover:bg-emerald-200">🔊 SEBUT</button>
+                        </div>
+                        <div class="nota-back p-4">
+                            <h3 class="text-3xl font-bold arabic-text mb-2">${haiwan.jawi}</h3>
+                            <p class="text-emerald-100 text-sm">${haiwan.my}</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(kad);
+            });
+        }
+
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+
+        document.getElementById('carian').addEventListener('input', (e) => paparNota(e.target.value));
+        paparNota();
+
+        /* --- FUNGSI PERMAINAN MEMORI --- */
+        let kadDipilih = [], padananDitemui = 0, markah = 0;
+
+        function mulaPermainan() {
+            const grid = document.getElementById('gridMemori');
+            grid.innerHTML = '';
+            kadDipilih = []; padananDitemui = 0; markah = 0;
             document.getElementById('score').innerText = markah;
 
-            // Pilih 8 haiwan secara rawak daripada senarai 38
-            let senaraiRawak = [...senaraiHaiwanLengkap].sort(() => 0.5 - Math.random()).slice(0, jumlahPasanganSatuPusingan);
-
-            // Gandakan data untuk buat pasangan
+            let senaraiRawak = [...senaraiHaiwanLengkap].sort(() => 0.5 - Math.random()).slice(0, 8);
             let susunanPermainan = [];
             senaraiRawak.forEach(haiwan => {
-                // Kad Bahasa Arab
                 susunanPermainan.push({ teks: haiwan.ar, id: haiwan.my, kelas: 'arabic-text text-4xl font-bold text-emerald-700' });
-                // Kad Bahasa Melayu (Tulisan Jawi)
                 susunanPermainan.push({ teks: haiwan.jawi, id: haiwan.my, kelas: 'arabic-text text-2xl font-bold text-slate-700' });
             });
-
-            // Rawakkan susunan kad di atas meja
             susunanPermainan.sort(() => 0.5 - Math.random());
 
             susunanPermainan.forEach(item => {
                 const kad = document.createElement('div');
-                kad.classList.add('memory-card');
+                kad.className = 'memory-card';
                 kad.dataset.id = item.id;
-                
                 kad.innerHTML = `
-                    <div class="front-face">❓</div>
-                    <div class="back-face ${item.kelas}">${item.teks}</div>
+                    <div class="memory-inner">
+                        <div class="memory-front">❓</div>
+                        <div class="memory-back p-2 ${item.kelas}">${item.teks}</div>
+                    </div>
                 `;
-                
-                kad.addEventListener('click', flipCard);
-                gameBoard.appendChild(kad);
+                kad.addEventListener('click', function() {
+                    if (kadDipilih.length < 2 && !this.classList.contains('flip')) {
+                        this.classList.add('flip');
+                        kadDipilih.push(this);
+                        if (kadDipilih.length === 2) setTimeout(semakPadanan, 800);
+                    }
+                });
+                grid.appendChild(kad);
             });
-        }
-
-        function flipCard() {
-            if (kadDipilih.length < 2 && !this.classList.contains('flip')) {
-                this.classList.add('flip');
-                kadDipilih.push(this);
-
-                if (kadDipilih.length === 2) {
-                    setTimeout(semakPadanan, 800);
-                }
-            }
         }
 
         function semakPadanan() {
             const [kad1, kad2] = kadDipilih;
-            const padan = kad1.dataset.id === kad2.dataset.id;
-
-            if (padan) {
-                markah += 10;
-                padananDitemui++;
-                kadDipilih = [];
-                if (padananDitemui === jumlahPasanganSatuPusingan) {
-                    alert('Tahniah! Anda telah berjaya memadankan kesemua kad. Klik Mula Semula untuk cuba haiwan yang lain.');
-                }
+            if (kad1.dataset.id === kad2.dataset.id) {
+                markah += 10; padananDitemui++;
+                if (padananDitemui === 8) alert('Hebat! Anda berjaya padankan semua haiwan.');
             } else {
                 kad1.classList.remove('flip');
                 kad2.classList.remove('flip');
-                kadDipilih = [];
             }
+            kadDipilih = [];
             document.getElementById('score').innerText = markah;
         }
-
-        susunKad();
     </script>
     <script>
 function toggleMenu() {
