@@ -17,13 +17,12 @@ body {
 
 .arabic {
     font-family: 'Amiri', serif;
-    font-size: 2.5rem;
     direction: rtl;
+    font-size: 2rem;
 }
 
 button {
-    display: block;
-    margin: 10px auto;
+    margin: 8px;
     padding: 12px 20px;
     border-radius: 10px;
     border: none;
@@ -32,155 +31,160 @@ button {
     cursor: pointer;
 }
 
-button:hover {
-    background: #0284c7;
-}
-
-#timer {
-    font-size: 1.5rem;
-    color: red;
+input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎮 Kuiz Game Buah</h1>
+<h1>🎮 Kuiz Buah</h1>
 
-<p>⏱️ Masa: <span id="timer">10</span>s</p>
-<p>⭐ Skor: <span id="score">0</span> | 🔥 Streak: <span id="streak">0</span></p>
+<div id="menu">
+    <h2>Pilih Tahap</h2>
+    <button onclick="startGame('easy')">🟢 Mudah</button>
+    <button onclick="startGame('medium')">🟡 Sederhana</button>
+    <button onclick="startGame('hard')">🔴 Susah</button>
+</div>
 
-<h2 id="question" class="arabic"></h2>
+<div id="game" style="display:none;">
+    <p>Skor: <span id="score">0</span></p>
+    <h2 id="question"></h2>
+    <div id="answers"></div>
+    <input id="inputAnswer" style="display:none;" placeholder="Taip jawapan...">
+    <button id="submitBtn" style="display:none;" onclick="submitAnswer()">Hantar</button>
+    <p id="result"></p>
+    <button onclick="nextQuestion()">➡️ Seterusnya</button>
+</div>
 
-<div id="answers"></div>
-
-<p id="result"></p>
-
-<button onclick="startGame()">🔄 Mula Semula</button>
 <a href="index.html">⬅️ Flashcard</a>
 
 <script>
 const fruits = [
-{ ar: "مَوْزٌ", my: "ڤيسڠ" },
-{ ar: "مَانْجُو", my: "مڠݢ" },
-{ ar: "عِنَبٌ", my: "اڠݢور" },
-{ ar: "تُفَّاحٌ", my: "ايڤل" },
-{ ar: "أَنَانَاسٌ", my: "ننس" },
-{ ar: "بُرْتُقَالٌ", my: "اورين" },
-{ ar: "رَمْبُوتَنٌ", my: "رمبوتن" },
-{ ar: "بِطَّيْخٌ", my: "تمبيکاي" },
-{ ar: "فَرَوْلَةٌ", my: "ستروبيري" },
-{ ar: "تَمْرٌ", my: "کورما" }
+{ ar:"مَوْزٌ", my:"ڤيسڠ" },
+{ ar:"مَانْجُو", my:"مڠݢ" },
+{ ar:"عِنَبٌ", my:"اڠݢور" },
+{ ar:"تُفَّاحٌ", my:"ايڤل" },
+{ ar:"بَابَايَا", my:"بتيق" },
+{ ar:"أَنَانَاسٌ", my:"ننس" },
+{ ar:"بُرْتُقَالٌ", my:"اورين" },
+{ ar:"رَمْبُوتَنٌ", my:"رمبوتن" },
+{ ar:"بِطَّيْخٌ", my:"تمبيکاي" },
+{ ar:"فَرَوْلَةٌ", my:"ستروبيري" },
+{ ar:"أَبُو شَوْكَةٍ", my:"دورين" },
+{ ar:"ثَمْبِدَقٌ", my:"چمڤدق" },
+{ ar:"مَانْجِسْتَانِ", my:"مڠݢيس" },
+{ ar:"زُعْرُورٌ", my:"چيكو" },
+{ ar:"جَوَّافَةٌ", my:"جمبو" },
+{ ar:"نَجْمِيَّةٌ", my:"بليمبيڠ" },
+{ ar:"لَنجْسَات", my:"لڠسات" },
+{ ar:"تَشِيَّةٌ", my:"لايسي" },
+{ ar:"نَانْجِكَا", my:"نڠكا" },
+{ ar:"كُمِثْرَى", my:"لاي" },
+{ ar:"رُمَّانٌ", my:"دليما" },
+{ ar:"نَارَجِيْلٌ", my:"کلاڤا" },
+{ ar:"كَرَزٌ", my:"چيري" },
+{ ar:"كِيْوِي", my:"کيوي" },
+{ ar:"دُرَّاقٌ", my:"ڤيچ" },
+{ ar:"تَمْرٌ", my:"کورما" },
+{ ar:"زَبِيْبٌ", my:"کيسميس" },
+{ ar:"لِيْمُونٌ", my:"ليمون" },
+{ ar:"مَاتَ كُوْجِيْنْ", my:"مات کوچيڠ" },
+{ ar:"دُورِيَانٌ بُلَنْدَى", my:"دورين بلندا" }
 ];
 
-let questions = [];
+let level = "easy";
 let current;
 let score = 0;
-let streak = 0;
-let timer;
-let timeLeft = 10;
 
-function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
-}
-
-function startGame() {
+function startGame(lv) {
+    level = lv;
     score = 0;
-    streak = 0;
-    questions = shuffle([...fruits]);
+    document.getElementById('menu').style.display = "none";
+    document.getElementById('game').style.display = "block";
     nextQuestion();
 }
 
 function nextQuestion() {
-    clearInterval(timer);
-    timeLeft = 10;
-    document.getElementById('timer').innerHTML = timeLeft;
     document.getElementById('result').innerHTML = "";
+    current = fruits[Math.floor(Math.random()*fruits.length)];
 
-    if (questions.length === 0) {
-        endGame();
-        return;
-    }
+    const q = document.getElementById('question');
+    const answers = document.getElementById('answers');
+    const input = document.getElementById('inputAnswer');
+    const submit = document.getElementById('submitBtn');
 
-    current = questions.pop();
-    document.getElementById('question').innerHTML = current.ar;
+    answers.innerHTML = "";
+    input.style.display = "none";
+    submit.style.display = "none";
 
-    let options = [current.my];
-    while (options.length < 4) {
-        let rand = fruits[Math.floor(Math.random() * fruits.length)].my;
-        if (!options.includes(rand)) options.push(rand);
-    }
+    if (level === "easy") {
+        q.innerHTML = `<span class="arabic">${current.ar}</span>`;
 
-    options = shuffle(options);
-
-    const answersDiv = document.getElementById('answers');
-    answersDiv.innerHTML = "";
-
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.innerHTML = opt;
-
-        btn.onclick = () => checkAnswer(opt);
-
-        answersDiv.appendChild(btn);
-    });
-
-    timer = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer').innerHTML = timeLeft;
-
-        if (timeLeft === 0) {
-            clearInterval(timer);
-            streak = 0;
-            document.getElementById('result').innerHTML = "⏰ Masa habis!";
-            setTimeout(nextQuestion, 1000);
+        let options = [current.my];
+        while(options.length < 4){
+            let r = fruits[Math.floor(Math.random()*fruits.length)].my;
+            if(!options.includes(r)) options.push(r);
         }
-    }, 1000);
-}
 
-function checkAnswer(answer) {
-    clearInterval(timer);
+        options.sort(()=>Math.random()-0.5);
 
-    if (answer === current.my) {
-        score += 10;
-        streak++;
-        document.getElementById('result').innerHTML = "✅ Betul!";
-        playSound(true);
+        options.forEach(opt=>{
+            let btn=document.createElement("button");
+            btn.innerHTML=opt;
+            btn.onclick=()=>check(opt);
+            answers.appendChild(btn);
+        });
+
+    } else if (level === "medium") {
+        q.innerHTML = current.my;
+
+        let options = [current.ar];
+        while(options.length < 4){
+            let r = fruits[Math.floor(Math.random()*fruits.length)].ar;
+            if(!options.includes(r)) options.push(r);
+        }
+
+        options.sort(()=>Math.random()-0.5);
+
+        options.forEach(opt=>{
+            let btn=document.createElement("button");
+            btn.innerHTML=`<span class="arabic">${opt}</span>`;
+            btn.onclick=()=>check(opt);
+            answers.appendChild(btn);
+        });
+
     } else {
-        streak = 0;
-        document.getElementById('result').innerHTML = "❌ Salah!";
-        playSound(false);
-    }
-
-    document.getElementById('score').innerHTML = score;
-    document.getElementById('streak').innerHTML = streak;
-
-    setTimeout(nextQuestion, 1000);
-}
-
-function playSound(correct) {
-    const audio = new Audio(correct
-        ? "https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"
-        : "https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"
-    );
-    audio.play();
-}
-
-function endGame() {
-    document.getElementById('question').innerHTML = "🎉 Tamat!";
-    document.getElementById('answers').innerHTML = "";
-    document.getElementById('result').innerHTML = "Skor akhir: " + score;
-
-    if (score >= 80) {
-        document.getElementById('result').innerHTML += "<br>🌟 Hebat!";
-    } else if (score >= 50) {
-        document.getElementById('result').innerHTML += "<br>👍 Bagus!";
-    } else {
-        document.getElementById('result').innerHTML += "<br>💪 Cuba lagi!";
+        q.innerHTML = `<span class="arabic">${current.ar}</span>`;
+        input.style.display = "block";
+        submit.style.display = "inline-block";
+        input.value="";
     }
 }
 
-startGame();
+function check(ans){
+    if(ans === (level==="medium"? current.ar: current.my)){
+        score+=10;
+        document.getElementById('result').innerHTML="✅ Betul!";
+    } else {
+        document.getElementById('result').innerHTML="❌ Salah!";
+    }
+    document.getElementById('score').innerHTML=score;
+}
+
+function submitAnswer(){
+    const val = document.getElementById('inputAnswer').value.trim();
+    if(val === current.my){
+        score+=15;
+        document.getElementById('result').innerHTML="🔥 Tepat!";
+    } else {
+        document.getElementById('result').innerHTML="❌ Salah!";
+    }
+    document.getElementById('score').innerHTML=score;
+}
 </script>
 
 </body>
